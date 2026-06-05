@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SB Scheduling Agent — Demo | Berlitz Japan</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg2: #f5f5f3;
+    --bg3: #eeede9;
+    --text: #1a1a18;
+    --text2: #6b6a65;
+    --text3: #9c9a92;
+    --border: rgba(0,0,0,0.10);
+    --border2: rgba(0,0,0,0.18);
+    --blue50: #E6F1FB;
+    --blue100: #B5D4F4;
+    --blue600: #185FA5;
+    --blue800: #0C447C;
+    --green50: #EAF3DE;
+    --green100: #C0DD97;
+    --green600: #3B6D11;
+    --amber50: #FAEEDA;
+    --amber100: #FAC775;
+    --amber600: #854F0B;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1c;
+      --bg2: #2a2a27;
+      --bg3: #333330;
+      --text: #e8e6de;
+      --text2: #9c9a92;
+      --text3: #6b6a65;
+      --border: rgba(255,255,255,0.10);
+      --border2: rgba(255,255,255,0.18);
+      --blue50: #0c2d4a;
+      --blue100: #0c447c;
+      --blue600: #85b7eb;
+      --blue800: #b5d4f4;
+      --green50: #172f08;
+      --green100: #27500a;
+      --green600: #97c459;
+      --amber50: #2e1e04;
+      --amber100: #633806;
+      --amber600: #ef9f27;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg2);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .page-wrap {
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  /* Top bar */
+  .top-bar {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+  .berlitz-logo {
+    background: #1a1a2e; color: #fff;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    padding: 5px 12px; border-radius: 5px;
+    flex-shrink: 0;
+  }
+  .top-title { flex: 1; }
+  .top-title h1 { font-size: 18px; font-weight: 600; color: var(--text); }
+  .top-title p { font-size: 12px; color: var(--text2); margin-top: 1px; }
+
+  .global-status {
+    font-size: 11px; padding: 4px 12px;
+    border-radius: 20px; border: 0.5px solid; font-weight: 500;
+    flex-shrink: 0; transition: all 0.25s;
+  }
+  .s-idle   { background: var(--bg2); color: var(--text2); border-color: var(--border2); }
+  .s-wait   { background: var(--amber50); color: var(--amber600); border-color: var(--amber100); }
+  .s-done   { background: var(--green50); color: var(--green600); border-color: var(--green100); }
+  .s-run    { background: var(--blue50); color: var(--blue600); border-color: var(--blue100); }
+
+  /* Card */
+  .card {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Upload zone */
+  .upload-zone {
+    border: 0.5px dashed var(--border2);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.25rem;
+    background: var(--bg2);
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 1rem;
+  }
+  .upload-icon { font-size: 30px; color: var(--text3); flex-shrink: 0; }
+  .upload-text p { margin: 0; font-size: 13px; color: var(--text2); }
+  .upload-text strong { color: var(--text); font-weight: 500; }
+  .file-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--bg); border: 0.5px solid var(--border);
+    border-radius: 6px; padding: 3px 10px;
+    font-size: 12px; color: var(--text2); margin-top: 6px;
+  }
+  .file-chip i { color: var(--green600); font-size: 13px; }
+
+  /* Steps rail */
+  .steps-rail {
+    display: flex; border: 0.5px solid var(--border);
+    border-radius: var(--radius-md); overflow: hidden;
+    background: var(--bg2); margin-bottom: 0.5rem;
+  }
+  .step-tab {
+    flex: 1; padding: 9px 4px 8px;
+    text-align: center; font-size: 11px;
+    color: var(--text3); cursor: pointer;
+    border-right: 0.5px solid var(--border);
+    transition: background 0.15s, color 0.15s;
+    line-height: 1.35; user-select: none;
+  }
+  .step-tab:last-child { border-right: none; }
+  .step-tab .snum { font-weight: 600; display: block; margin-bottom: 1px; font-size: 12px; }
+  .step-tab.active { background: var(--bg); color: var(--text); }
+  .step-tab.done { color: var(--green600); }
+  .step-tab.done .snum::before { content: "✓"; margin-right: 2px; }
+  .step-tab.waiting { color: var(--amber600); }
+
+  /* Progress bar */
+  .prog-wrap { height: 3px; background: var(--bg3); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+  .prog-bar { height: 100%; background: var(--blue600); border-radius: 2px; transition: width 0.4s ease; }
+
+  /* Step panels */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .panel-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding-bottom: 0.9rem; margin-bottom: 1rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .panel-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .panel-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .panel-status { margin-top: 2px; }
+
+  /* Info grid */
+  .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1rem; }
+  .info-grid.cols2 { grid-template-columns: 1fr 1fr; }
+  .info-grid.cols4 { grid-template-columns: repeat(4, 1fr); }
+  .icard { background: var(--bg2); border-radius: var(--radius-md); padding: 10px 12px; }
+  .icard .label { font-size: 11px; color: var(--text2); margin-bottom: 3px; }
+  .icard .value { font-size: 14px; font-weight: 500; color: var(--text); }
+
+  /* Warning banner */
+  .warn-banner {
+    background: var(--amber50); color: var(--amber600);
+    border: 0.5px solid var(--amber100);
+    border-radius: var(--radius-md);
+    padding: 10px 14px; font-size: 13px;
+    margin-bottom: 1rem;
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .warn-banner i { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+  /* Tables */
+  .tbl-wrap { overflow-x: auto; margin-bottom: 1rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th {
+    background: var(--bg2); padding: 6px 8px; text-align: left;
+    font-weight: 500; color: var(--text2); font-size: 11px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  td {
+    padding: 7px 8px; border-bottom: 0.5px solid var(--border);
+    color: var(--text);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr.row-sel td { background: var(--blue50); }
+  tr.row-total td { background: var(--bg2); }
+
+  /* Unit badge */
+  .ubadge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--blue50); color: var(--blue600);
+    font-size: 11px; font-weight: 600;
+  }
+  .ubadge.green { background: var(--green50); color: var(--green600); border: 0.5px solid var(--green100); }
+
+  /* Lesson grid */
+  .lesson-grid {
+    display: grid;
+    grid-template-columns: 76px repeat(17, 1fr);
+    font-size: 10px;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  .lg-h {
+    background: var(--bg2); padding: 5px 2px;
+    text-align: center; font-weight: 500;
+    color: var(--text2); font-size: 9px;
+    border-bottom: 0.5px solid var(--border);
+    border-right: 0.5px solid var(--border);
+  }
+  .lg-date {
+    padding: 5px 6px;
+    background: var(--bg2); font-weight: 500;
+    color: var(--text2); font-size: 10px;
+    border-right: 0.5px solid var(--border);
+    border-bottom: 0.5px solid var(--border);
+  }
+  .lg-cell {
+    padding: 4px 1px; text-align: center;
+    border-right: 0.5px solid var(--border);
+    border-bottom: 0.5px solid var(--border);
+    color: var(--text3); font-size: 9px;
+  }
+  .lg-cell.lesson {
+    background: var(--blue50); color: var(--blue800);
+    font-weight: 600;
+  }
+
+  /* Output rows */
+  .out-section {
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem; overflow: hidden;
+  }
+  .out-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border-bottom: 0.5px solid var(--border);
+    font-size: 12px;
+  }
+  .out-row:last-child { border-bottom: none; }
+  .out-num {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--bg2); display: flex; align-items: center;
+    justify-content: center; font-size: 10px; font-weight: 500;
+    color: var(--text2); flex-shrink: 0;
+  }
+  .out-date { width: 85px; color: var(--text2); flex-shrink: 0; font-size: 11px; }
+  .out-day { width: 30px; color: var(--text3); flex-shrink: 0; font-size: 11px; }
+  .lesson-blk { display: flex; gap: 3px; }
+  .l-dot {
+    width: 26px; height: 22px;
+    background: var(--blue50); border: 0.5px solid var(--blue100);
+    border-radius: 4px; display: flex; align-items: center;
+    justify-content: center; font-size: 9px; font-weight: 600;
+    color: var(--blue600);
+  }
+  .out-time { margin-left: auto; color: var(--text2); font-size: 10px; white-space: nowrap; }
+
+  /* Summary chips */
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.75rem; }
+  .chip {
+    background: var(--bg2); border: 0.5px solid var(--border);
+    border-radius: 20px; padding: 4px 12px;
+    font-size: 12px; color: var(--text2);
+  }
+  .chip strong { color: var(--text); font-weight: 500; }
+
+  /* Final checks */
+  .chk-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 0; font-size: 12px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .chk-row:last-child { border-bottom: none; }
+  .chk-ok { color: var(--green600); font-size: 14px; flex-shrink: 0; }
+  .chk-lbl { flex: 1; }
+  .chk-val { font-size: 11px; color: var(--text2); }
+
+  /* Buttons */
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
+  .nav-label { font-size: 11px; color: var(--text3); }
+  button {
+    font-size: 12px; padding: 7px 14px;
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius-md);
+    background: var(--bg); color: var(--text);
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    font-family: inherit; transition: background 0.15s;
+  }
+  button:hover { background: var(--bg2); }
+  button.primary {
+    background: #1a1a2e; color: #fff; border-color: #1a1a2e;
+  }
+  button.primary:hover { background: #2d2d4a; border-color: #2d2d4a; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Unit list */
+  .unit-list { display: flex; flex-direction: column; gap: 4px; }
+  .unit-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text2); }
+  .unit-row .ur-label { width: 80px; font-weight: 500; flex-shrink: 0; }
+  .unit-row .ur-date { font-size: 11px; color: var(--text3); }
+
+  /* Note text */
+  .note { font-size: 11px; color: var(--text2); margin-top: 4px; display: flex; align-items: flex-start; gap: 5px; }
+  .note i { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+
+  /* Footer */
+  .footer {
+    text-align: center; margin-top: 2rem;
+    font-size: 11px; color: var(--text3);
+    padding-top: 1rem;
+    border-top: 0.5px solid var(--border);
+  }
+
+  @media (max-width: 500px) {
+    .info-grid { grid-template-columns: 1fr 1fr; }
+    .info-grid.cols4 { grid-template-columns: 1fr 1fr; }
+    .steps-rail .step-tab { font-size: 9px; padding: 8px 2px; }
+    .lesson-grid { grid-template-columns: 60px repeat(17, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <span class="berlitz-logo">BERLITZ JAPAN</span>
+    <div class="top-title">
+      <h1>SB Scheduling Agent</h1>
+      <p>School Business Operations — AI-powered schedule generation demo</p>
+    </div>
+    <span class="global-status s-idle" id="global-status">Idle</span>
+  </div>
+
+  <!-- Upload zone -->
+  <div class="upload-zone">
+    <div class="upload-icon"><i class="ti ti-file-spreadsheet"></i></div>
+    <div class="upload-text">
+      <p><strong>Schedule sheet uploaded</strong></p>
+      <p>Power Automate trigger detected — processing started automatically</p>
+      <div class="file-chip">
+        <i class="ti ti-check"></i>
+        まどか子ども園日程表.xlsx &nbsp;·&nbsp; Format ③ Calendar type
+      </div>
+    </div>
+  </div>
+
+  <!-- Steps rail -->
+  <div class="steps-rail" id="steps-rail">
+    <div class="step-tab active" data-step="0" onclick="goToStep(0)">
+      <span class="snum">0</span>Group<br>Name
+    </div>
+    <div class="step-tab" data-step="1" onclick="goToStep(1)">
+      <span class="snum">1</span>Candidates
+    </div>
+    <div class="step-tab" data-step="2" onclick="goToStep(2)">
+      <span class="snum">1.5</span>Confirm
+    </div>
+    <div class="step-tab" data-step="3" onclick="goToStep(3)">
+      <span class="snum">2</span>Decompose
+    </div>
+    <div class="step-tab" data-step="4" onclick="goToStep(4)">
+      <span class="snum">3</span>Units
+    </div>
+    <div class="step-tab" data-step="5" onclick="goToStep(5)">
+      <span class="snum">4</span>Placement
+    </div>
+    <div class="step-tab" data-step="6" onclick="goToStep(6)">
+      <span class="snum">7</span>Output ✓
+    </div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="prog-wrap"><div class="prog-bar" id="prog" style="width:14%"></div></div>
+
+  <!-- ── PANEL 0 ── -->
+  <div class="card panel active" id="panel-0">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Step 0 — Group Name analysis</div>
+        <div class="panel-sub">Extract teacher, weekday, and period from cell D1</div>
+      </div>
+      <span class="global-status s-done panel-status">Done</span>
+    </div>
+    <div class="info-grid">
+      <div class="icard"><div class="label">Teacher</div><div class="value">Adrian Williamson</div></div>
+      <div class="icard"><div class="label">LC</div><div class="value">Sannomiya</div></div>
+      <div class="icard"><div class="label">Client</div><div class="value">まどか子ども園</div></div>
+      <div class="icard"><div class="label">Target weekday</div><div class="value">Wednesday</div></div>
+      <div class="icard"><div class="label">Frequency</div><div class="value">2× per month</div></div>
+      <div class="icard"><div class="label">Total sessions</div><div class="value">24 sessions</div></div>
+    </div>
+    <div class="info-grid cols2">
+      <div class="icard">
+        <div class="label">Lesson time (Z column)</div>
+        <div class="value" style="font-size:12px;">①9:15–9:35 ②9:40–10:10 ③10:15–10:45</div>
+      </div>
+      <div class="icard">
+        <div class="label">Format type detected</div>
+        <div class="value">③ Calendar type</div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <span class="nav-label">Step 0 of 6</span>
+      <button class="primary" onclick="goToStep(1)">Next <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ── PANEL 1 ── -->
+  <div class="card panel" id="panel-1">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Step 1 — Candidate lesson dates</div>
+        <div class="panel-sub">Extracted from calendar — all Wednesdays with lesson markers detected</div>
+      </div>
+      <span class="global-status s-wait panel-status">⚠ Awaiting approval</span>
+    </div>
+    <div class="warn-banner">
+      <i class="ti ti-alert-triangle"></i>
+      <span><strong>Human checkpoint required.</strong> Review the candidate table before the agent proceeds. The agent will not advance without explicit approval.</span>
+    </div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:8px;">[STEP1 Candidate Table] — 24 candidates found on Wednesdays, 2026/04 – 2027/03</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>No</th><th>Date</th><th>Day</th><th>Start</th><th>End</th><th>Teacher (LC)</th><th>Z column</th></tr>
+        </thead>
+        <tbody id="cand-tbody"></tbody>
+      </table>
+    </div>
+    <div class="nav-row">
+      <button onclick="goToStep(0)"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="primary" onclick="goToStep(2)">Approve &amp; confirm →</button>
+    </div>
+  </div>
+
+  <!-- ── PANEL 2 ── -->
+  <div class="card panel" id="panel-2">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Step 1.5 — Lesson dates confirmed</div>
+        <div class="panel-sub">AND condition applied: Wednesday ∩ lesson marker → 24 dates confirmed</div>
+      </div>
+      <span class="global-status s-done panel-status">Done</span>
+    </div>
+    <div class="info-grid">
+      <div class="icard"><div class="label">Confirmed dates</div><div class="value">24</div></div>
+      <div class="icard"><div class="label">Weekday</div><div class="value">Wednesday only</div></div>
+      <div class="icard"><div class="label">Color relied on?</div><div class="value" style="color:var(--green600)">No — text markers</div></div>
+    </div>
+    <p style="font-size:12px;color:var(--text2);">
+      Format ③ rule applied: lesson days identified via weekday label + time annotation, not cell background color. Color independence confirmed.
+    </p>
+    <div class="nav-row">
+      <button onclick="goToStep(1)"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="primary" onclick="goToStep(3)">Next <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ── PANEL 3 ── -->
+  <div class="card panel" id="panel-3">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Step 2 — Lesson decomposition (intermediate table)</div>
+        <div class="panel-sub">Z column governs units — 3 lesson divisions per session</div>
+      </div>
+      <span class="global-status s-done panel-status">Done</span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>No</th><th>Date</th><th>Day</th><th>Start</th><th>End</th><th>Min</th><th>Z column (actual divisions)</th><th>Units</th></tr>
+        </thead>
+        <tbody id="decomp-tbody"></tbody>
+      </table>
+    </div>
+    <p class="note"><i class="ti ti-info-circle"></i> Z column divisions override time ÷ 40 calculation. 3 divisions × 24 sessions = 72 total units = B10 ✓</p>
+    <div class="nav-row">
+      <button onclick="goToStep(2)"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="primary" onclick="goToStep(4)">Next <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ── PANEL 4 ── -->
+  <div class="card panel" id="panel-4">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Step 3 — Units distribution</div>
+        <div class="panel-sub">B10 = 72 total units · 24 sessions · 3 units each = perfect match</div>
+      </div>
+      <span class="global-status s-done panel-status">Done</span>
+    </div>
+    <div class="info-grid cols4" style="margin-bottom:1rem;">
+      <div class="icard"><div class="label">B10 (target)</div><div class="value">72 units</div></div>
+      <div class="icard"><div class="label">Sessions</div><div class="value">24</div></div>
+      <div class="icard"><div class="label">Units / session</div><div class="value">3 (uniform)</div></div>
+      <div class="icard"><div class="label">Diff (B10 − Σ)</div><div class="value" style="color:var(--green600)">0 ✓</div></div>
+    </div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">Complete uniform distribution: 72 ÷ 24 = 3 (exact integer → all sessions identical, no adjustment needed).</p>
+    <div class="unit-list" id="unit-list"></div>
+    <div class="nav-row">
+      <button onclick="goToStep(3)"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="primary" onclick="goToStep(5)">Next <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ── PANEL 5 ── -->
+  <div class="card panel" id="panel-5">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Step 4 — Lesson placement</div>
+        <div class="panel-sub">Z column authoritative · 9:15 slot → L① L② L③ expanded right</div>
+      </div>
+      <span class="global-status s-done panel-status">Done</span>
+    </div>
+    <p class="note" style="margin-bottom:10px;"><i class="ti ti-info-circle"></i> Template slots at 45-min intervals · Lessons placed at 9:15 · 3 consecutive units · No 7-slot violations</p>
+    <div class="lesson-grid" id="lesson-grid"></div>
+    <p style="font-size:11px;color:var(--text2);margin-top:6px;">Showing first 5 sessions. Pattern is identical across all 24 sessions.</p>
+    <div class="nav-row">
+      <button onclick="goToStep(4)"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="primary" onclick="goToStep(6)">View final output <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ── PANEL 6 ── -->
+  <div class="card panel" id="panel-6">
+    <div class="panel-header">
+      <div>
+        <div class="panel-title">Step 7 — Template output ready</div>
+        <div class="panel-sub">COSMOS-compatible Excel written · RPA-ready</div>
+      </div>
+      <span class="global-status s-done panel-status">✓ Complete</span>
+    </div>
+    <div class="out-section" id="out-rows"></div>
+    <div class="chips">
+      <div class="chip">Total sessions: <strong>24</strong></div>
+      <div class="chip">Total units: <strong>72 / 72 ✓</strong></div>
+      <div class="chip">7-consecutive: <strong>None ✓</strong></div>
+      <div class="chip">Z column match: <strong>All 24 ✓</strong></div>
+    </div>
+    <div style="margin-top:1rem;border-top:0.5px solid var(--border);padding-top:1rem;">
+      <p style="font-size:12px;font-weight:600;margin-bottom:8px;">Final checks</p>
+      <div class="chk-row"><span class="chk-ok">✓</span><span class="chk-lbl">ΣUnits = B10</span><span class="chk-val">72 = 72</span></div>
+      <div class="chk-row"><span class="chk-ok">✓</span><span class="chk-lbl">Session count match</span><span class="chk-val">24 of 24</span></div>
+      <div class="chk-row"><span class="chk-ok">✓</span><span class="chk-lbl">No 7 consecutive slots</span><span class="chk-val">Max run: 3</span></div>
+      <div class="chk-row"><span class="chk-ok">✓</span><span class="chk-lbl">Z column match (highest priority)</span><span class="chk-val">9:15-9:35/9:40-10:10/10:15-10:45</span></div>
+      <div class="chk-row"><span class="chk-ok">✓</span><span class="chk-lbl">Date accuracy</span><span class="chk-val">All Wednesdays confirmed</span></div>
+    </div>
+    <div class="nav-row">
+      <button onclick="goToStep(0)"><i class="ti ti-refresh"></i> Restart demo</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    SB Scheduling Agent demo · Berlitz Japan · Built for SB Operations team · まどか子ども園 (Format ③ Calendar type)
+  </div>
+
+</div><!-- /page-wrap -->
+
+<script>
+const CANDIDATES = [
+  ["2026/04/08","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2026/04/22","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2026/05/13","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2026/05/27","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2026/06/03","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2026/06/17","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2026/07/01","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2026/07/15","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2026/08/05","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2026/08/19","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2026/09/02","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2026/09/16","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2026/10/07","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2026/10/21","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2026/11/04","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2026/11/18","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2026/12/02","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2026/12/16","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2027/01/13","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2027/01/20","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2027/02/03","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2027/02/17","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2027/03/03","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+  ["2027/03/17","Wed","9:15","10:45","Adrian Williamson (Sannomiya)","9:15-9:35/9:40-10:10/10:15-10:45"],
+];
+
+const SLOTS = ["8:30","9:15","10:00","10:45","11:30","12:15","13:00","13:45","14:30","15:15","16:00","16:45","17:30","18:15","19:00","19:45","20:30"];
+
+const STATUS = {
+  0: { cls: 's-done',  label: 'Step 0 complete' },
+  1: { cls: 's-wait',  label: 'Awaiting approval' },
+  2: { cls: 's-done',  label: 'Confirmed' },
+  3: { cls: 's-done',  label: 'Step 2 complete' },
+  4: { cls: 's-done',  label: 'Step 3 complete' },
+  5: { cls: 's-done',  label: 'Step 4 complete' },
+  6: { cls: 's-done',  label: 'Output ready' },
+};
+
+function buildCandidates() {
+  const tb = document.getElementById('cand-tbody');
+  CANDIDATES.forEach((c, i) => {
+    const tr = tb.insertRow();
+    if (i < 3) tr.className = 'row-sel';
+    tr.innerHTML = `<td>${i+1}</td><td>${c[0]}</td><td>${c[1]}</td><td>${c[2]}</td><td>${c[3]}</td><td style="font-size:11px">${c[4]}</td><td style="font-size:10px;color:var(--text2)">${c[5]}</td>`;
+  });
+}
+
+function buildDecomp() {
+  const tb = document.getElementById('decomp-tbody');
+  CANDIDATES.slice(0, 5).forEach((c, i) => {
+    const tr = tb.insertRow();
+    tr.innerHTML = `<td>${i+1}</td><td>${c[0]}</td><td>${c[1]}</td><td>${c[2]}</td><td>${c[3]}</td><td>90</td><td style="font-size:10px;color:var(--text2)">${c[5]}</td><td><span class="ubadge">3</span></td>`;
+  });
+  const e = tb.insertRow();
+  e.innerHTML = `<td colspan="8" style="text-align:center;color:var(--text2);font-size:12px;padding:6px 8px;">⋮ sessions 6–24 (same pattern)</td>`;
+  const t = tb.insertRow(); t.className = 'row-total';
+  t.innerHTML = `<td colspan="7" style="text-align:right;font-weight:500;font-size:11px;padding:6px 8px;">Total (24 sessions):</td><td><span class="ubadge green">72</span></td>`;
+}
+
+function buildUnitList() {
+  const ul = document.getElementById('unit-list');
+  const show = [[1,"2026/04/08 Wed"],[2,"2026/04/22 Wed"],[null,null],[24,"2027/03/17 Wed"]];
+  show.forEach(([n, d]) => {
+    const row = document.createElement('div');
+    row.className = 'unit-row';
+    if (!n) {
+      row.innerHTML = `<span class="ur-label" style="color:var(--text3)">⋮</span>`;
+    } else {
+      row.innerHTML = `
+        <span class="ur-label">Session ${n}</span>
+        <span class="ubadge">1</span><span class="ubadge">2</span><span class="ubadge">3</span>
+        <span class="ur-date">${d}</span>`;
+    }
+    ul.appendChild(row);
+  });
+}
+
+function buildLessonGrid() {
+  const g = document.getElementById('lesson-grid');
+  const dh = document.createElement('div'); dh.className = 'lg-h'; dh.textContent = 'Date'; g.appendChild(dh);
+  SLOTS.forEach(s => { const h = document.createElement('div'); h.className = 'lg-h'; h.textContent = s; g.appendChild(h); });
+  CANDIDATES.slice(0, 5).forEach(c => {
+    const dc = document.createElement('div'); dc.className = 'lg-date'; dc.textContent = c[0].slice(5); g.appendChild(dc);
+    SLOTS.forEach((_, si) => {
+      const cell = document.createElement('div');
+      if (si === 1) { cell.className = 'lg-cell lesson'; cell.textContent = 'L①'; }
+      else if (si === 2) { cell.className = 'lg-cell lesson'; cell.textContent = 'L②'; }
+      else if (si === 3) { cell.className = 'lg-cell lesson'; cell.textContent = 'L③'; }
+      else { cell.className = 'lg-cell'; }
+      g.appendChild(cell);
+    });
+  });
+}
+
+function buildOutput() {
+  const c = document.getElementById('out-rows');
+  CANDIDATES.slice(0, 8).forEach((row, i) => {
+    const d = document.createElement('div'); d.className = 'out-row';
+    d.innerHTML = `
+      <div class="out-num">${i+1}</div>
+      <div class="out-date">${row[0]}</div>
+      <div class="out-day">${row[1]}</div>
+      <div class="lesson-blk"><div class="l-dot">L①</div><div class="l-dot">L②</div><div class="l-dot">L③</div></div>
+      <div class="out-time">${row[5]}</div>`;
+    c.appendChild(d);
+  });
+  const more = document.createElement('div'); more.className = 'out-row';
+  more.innerHTML = `<div style="flex:1;text-align:center;font-size:11px;color:var(--text2);padding:4px 0">⋮ sessions 9–24 (same structure)</div>`;
+  c.appendChild(more);
+}
+
+function goToStep(step) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + step).classList.add('active');
+
+  document.querySelectorAll('.step-tab').forEach(t => {
+    t.classList.remove('active','done','waiting');
+    const ts = parseInt(t.dataset.step);
+    if (ts < step) t.classList.add('done');
+    else if (ts === step) t.classList.add('active');
+  });
+  if (step < 2) { const t1 = document.querySelector('[data-step="1"]'); if (step < 1) {} else if (step === 1) t1.classList.add('waiting'); }
+
+  const pct = Math.round(((step + 1) / 7) * 100);
+  document.getElementById('prog').style.width = pct + '%';
+
+  const gs = document.getElementById('global-status');
+  gs.className = 'global-status ' + STATUS[step].cls;
+  gs.textContent = STATUS[step].label;
+}
+
+buildCandidates();
+buildDecomp();
+buildUnitList();
+buildLessonGrid();
+buildOutput();
+goToStep(0);
+</script>
+</body>
+</html>
